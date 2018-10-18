@@ -1,0 +1,114 @@
+/*
+ *   Copyright(C) 2011-2018 Intel Corporation All Rights Reserved.
+ *
+ *   The source code, information  and  material ("Material") contained herein is
+ *   owned  by Intel Corporation or its suppliers or licensors, and title to such
+ *   Material remains  with Intel Corporation  or its suppliers or licensors. The
+ *   Material  contains proprietary information  of  Intel or  its  suppliers and
+ *   licensors. The  Material is protected by worldwide copyright laws and treaty
+ *   provisions. No  part  of  the  Material  may  be  used,  copied, reproduced,
+ *   modified, published, uploaded, posted, transmitted, distributed or disclosed
+ *   in any way  without Intel's  prior  express written  permission. No  license
+ *   under  any patent, copyright  or  other intellectual property rights  in the
+ *   Material  is  granted  to  or  conferred  upon  you,  either  expressly,  by
+ *   implication, inducement,  estoppel or  otherwise.  Any  license  under  such
+ *   intellectual  property  rights must  be express  and  approved  by  Intel in
+ *   writing.
+ *
+ *   *Third Party trademarks are the property of their respective owners.
+ *
+ *   Unless otherwise  agreed  by Intel  in writing, you may not remove  or alter
+ *   this  notice or  any other notice embedded  in Materials by Intel or Intel's
+ *   suppliers or licensors in any way.
+ *
+ */
+
+
+#ifndef _WIN_EXCEPTION_
+#define _WIN_EXCEPTION_
+
+#include <stdlib.h>
+#include "eh.h"
+
+#if defined(_MSC_VER) && (_MSC_VER >= 1900)
+namespace std
+{
+	class exception
+	{
+	public:
+		exception() noexcept;
+		explicit exception(const char * const & message) noexcept;
+		exception(const char* const & message, int ) noexcept;
+		exception(const exception& ) noexcept;
+		exception& operator=(const exception& ) noexcept;
+		virtual ~exception() noexcept;
+		virtual const char* what() const noexcept;
+	private:
+		void _copy_message(const char* );
+		void _free_message();
+
+		const char * _message;
+		bool _is_allocated;
+	};
+
+	class bad_alloc : public exception
+	{
+	public:
+		bad_alloc(const char *message)  noexcept : exception(message) {};
+		bad_alloc() noexcept : exception("bad allocation", 1) {};
+		virtual ~bad_alloc() noexcept {};
+	};
+
+    class bad_exception : public exception
+	{
+	public:
+		bad_exception(const char *message) noexcept  : exception(message) {};
+		bad_exception() noexcept : exception("bad exception", 1) {};
+		virtual ~bad_exception() noexcept {};
+	};
+
+    using ::set_terminate; using ::terminate_handler; using ::terminate;
+    bool __cdecl uncaught_exception() noexcept;
+};
+#else
+namespace std
+{
+	class exception
+	{
+	public:
+		exception();
+		explicit exception(const char * const & message);
+		exception(const char* const & message, int );
+		exception(const exception& );
+		exception& operator=(const exception& );
+		virtual ~exception();
+		virtual const char* what() const;
+	private:
+		void _copy_message(const char* );
+		void _free_message();
+
+		const char * _message;
+		bool _is_allocated;
+	};
+
+	class bad_alloc : public exception
+	{
+	public:
+		bad_alloc(const char *message)  throw() : exception(message) {};
+		bad_alloc() throw() : exception("bad allocation", 1) {};
+		virtual ~bad_alloc() throw() {};
+	};
+
+    class bad_exception : public exception
+	{
+	public:
+		bad_exception(const char *message) throw()  : exception(message) {};
+		bad_exception() throw() : exception("bad exception", 1) {};
+		virtual ~bad_exception() throw() {};
+	};
+
+    using ::set_terminate; using ::terminate_handler; using ::terminate;
+    bool __cdecl uncaught_exception() throw();
+};
+#endif
+#endif /* _WIN_EXCEPTION_ */

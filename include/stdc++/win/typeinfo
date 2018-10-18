@@ -1,0 +1,127 @@
+/*
+ *   Copyright(C) 2011-2018 Intel Corporation All Rights Reserved.
+ *
+ *   The source code, information  and  material ("Material") contained herein is
+ *   owned  by Intel Corporation or its suppliers or licensors, and title to such
+ *   Material remains  with Intel Corporation  or its suppliers or licensors. The
+ *   Material  contains proprietary information  of  Intel or  its  suppliers and
+ *   licensors. The  Material is protected by worldwide copyright laws and treaty
+ *   provisions. No  part  of  the  Material  may  be  used,  copied, reproduced,
+ *   modified, published, uploaded, posted, transmitted, distributed or disclosed
+ *   in any way  without Intel's  prior  express written  permission. No  license
+ *   under  any patent, copyright  or  other intellectual property rights  in the
+ *   Material  is  granted  to  or  conferred  upon  you,  either  expressly,  by
+ *   implication, inducement,  estoppel or  otherwise.  Any  license  under  such
+ *   intellectual  property  rights must  be express  and  approved  by  Intel in
+ *   writing.
+ *
+ *   *Third Party trademarks are the property of their respective owners.
+ *
+ *   Unless otherwise  agreed  by Intel  in writing, you may not remove  or alter
+ *   this  notice or  any other notice embedded  in Materials by Intel or Intel's
+ *   suppliers or licensors in any way.
+ *
+ */
+
+
+#ifndef _WIN_TYPEINFO_
+#define _WIN_TYPEINFO_
+
+#include "exception"
+
+#if defined(_MSC_VER) && (_MSC_VER >= 1900)
+class type_info
+{
+public:
+    type_info() = delete;
+    type_info(const type_info& input_typeinfo) = delete;
+    type_info& operator=(const type_info& input_typeinfo) = delete;
+
+    virtual ~type_info();
+    bool operator==(const type_info& input_typeinfo) const;
+    bool operator!=(const type_info& input_typeinfo) const;
+    bool before(const type_info& input_typeinfo) const;
+    const char* raw_name() const;
+private:
+    void *_data;
+    char _manged_name[1];
+    const char* name() const;
+    static void _destructor(type_info * typeinfo);
+};
+
+namespace std {
+    using ::type_info;
+    class bad_typeid : public exception
+    {
+    public:
+        bad_typeid() noexcept;
+        bad_typeid(const char* message);
+        bad_typeid(const bad_typeid &bt);
+        virtual ~bad_typeid() {};
+	};
+
+    class bad_cast : public exception 
+    {
+    public:
+        bad_cast() noexcept;
+        bad_cast(const char* message);
+        bad_cast(const bad_cast &bc);
+        virtual ~bad_cast() {};
+    };
+
+    class __non_rtti_object : public bad_typeid 
+    {
+    public:
+        __non_rtti_object(const char* message);
+        __non_rtti_object(const __non_rtti_object &bc);
+        virtual ~__non_rtti_object() {};
+    };
+}
+#else
+class type_info
+{
+public:
+    virtual ~type_info();
+    bool operator==(const type_info& input_typeinfo) const;
+    bool operator!=(const type_info& input_typeinfo) const;
+    bool before(const type_info& input_typeinfo) const;
+    const char* raw_name() const;
+private:
+    void *_data;
+    char _manged_name[1];
+    type_info(const type_info& input_typeinfo);
+    type_info& operator=(const type_info& input_typeinfo);
+    const char* name() const;
+    static void _destructor(type_info * typeinfo);
+};
+
+namespace std {
+    using ::type_info;
+    class bad_typeid : public exception
+    {
+    public:
+        bad_typeid() throw();
+        bad_typeid(const char* message);
+        bad_typeid(const bad_typeid &bt);
+        virtual ~bad_typeid() {};
+    };
+
+    class bad_cast : public exception 
+    {
+    public:
+        bad_cast() throw();
+        bad_cast(const char* message);
+        bad_cast(const bad_cast &bc);
+        virtual ~bad_cast() {};
+    };
+
+    class __non_rtti_object : public bad_typeid 
+    {
+    public:
+        __non_rtti_object(const char* message);
+        __non_rtti_object(const __non_rtti_object &bc);
+        virtual ~__non_rtti_object() {};
+    };
+}
+#endif
+#endif /* _WIN_TYPEINFO_ */
